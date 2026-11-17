@@ -8,6 +8,7 @@ on:
     branches: [desktop-app]
     tags: ['v*-desktop']
     paths: ['index.html', 'desktop/**', '.github/workflows/desktop-linux.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -68,3 +69,58 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${GITHUB_REF_NAME}" desktop/dist/WCH-Configurator-linux-x86_64.tar.gz --clobber -R "$GITHUB_REPOSITORY"
+
+  # Small build: system WebKitGTK through pywebview's GTK backend, no bundled Qt.
+  # The tarball is architecture independent (pure Python + index.html + launcher);
+  # the target needs python3, python3-gi, gir1.2-gtk-3.0 and gir1.2-webkit2-4.1.
+  linux-gtk:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Runtime packages (as on a user's system) and virtual display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends python3 python3-pip python3-gi gir1.2-gtk-3.0 \
+            gir1.2-webkit2-4.1 xvfb xauth dbus-x11 at-spi2-core
+
+      - name: Build
+        run: bash desktop/build_linux_gtk.sh
+
+      - name: Self-test with the system python3 (example, .c, VS Code zip, project save/open, Generate keeps USER CODE)
+        env:
+          WCH_SELFTEST_HOLD: '1'
+          WEBKIT_DISABLE_COMPOSITING_MODE: '1'
+          WEBKIT_DISABLE_DMABUF_RENDERER: '1'
+          WCH_PYTHON: /usr/bin/python3
+        run: |
+          mkdir -p "$RUNNER_TEMP/gtk" "$RUNNER_TEMP/st"
+          tar -xzf desktop/dist/WCH-Configurator-linux-gtk.tar.gz -C "$RUNNER_TEMP/gtk"
+          WCH_SELFTEST_DIR="$RUNNER_TEMP/st" timeout 240 xvfb-run -a -s "-screen 0 1600x1000x24" \
+            dbus-run-session -- "$RUNNER_TEMP/gtk/WCH-Configurator-gtk/wch-configurator" || true
+          ls -la "$RUNNER_TEMP/st"
+          cat "$RUNNER_TEMP/st/selftest.json"
+          python3 - "$RUNNER_TEMP/st/selftest.json" <<'PYEOF'
+          import json, sys
+          r = json.load(open(sys.argv[1]))
+          bad = [k for k in ("bar", "credit", "repo", "project_roundtrip", "generate_keeps_user_code") if not r.get(k)]
+          sys.exit("self-test failed: " + ", ".join(bad) if bad else 0)
+          PYEOF
+
+      - name: Checksums
+        run: |
+          cd desktop/dist
+          sha256sum WCH-Configurator-linux-gtk.tar.gz | tee SHA256SUMS-gtk.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WCH-Configurator-linux-gtk
+          path: |
+            desktop/dist/WCH-Configurator-linux-gtk.tar.gz
+            desktop/dist/SHA256SUMS-gtk.txt
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" desktop/dist/WCH-Configurator-linux-gtk.tar.gz --clobber -R "$GITHUB_REPOSITORY"

@@ -1,0 +1,74 @@
+name: Desktop app (macOS)
+
+# Builds WCH-Configurator.app (pywebview Cocoa / WKWebView, PyInstaller --windowed)
+# on Apple silicon, runs its self-test, zips it and attaches the zip to the release
+# when a v*-desktop tag is pushed.
+on:
+  push:
+    branches: [desktop-app]
+    tags: ['v*-desktop']
+    paths: ['index.html', 'desktop/**', '.github/workflows/desktop-macos.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: macOS support in the shell
+        run: |
+          # no-op when desktop/wch_configurator.py already has it
+          python3 desktop/patch_macos.py desktop/wch_configurator.py
+
+      - name: Build
+        run: bash desktop/build_macos.sh
+
+      - name: Self-test (example, .c, VS Code zip, project save/open, Generate keeps USER CODE)
+        env:
+          WCH_SELFTEST_HOLD: '1'
+        run: |
+          mkdir -p "$RUNNER_TEMP/st"
+          WCH_SELFTEST_DIR="$RUNNER_TEMP/st" python3 - <<'EOF'
+          import subprocess, sys
+          try:
+              subprocess.run(["desktop/dist/WCH-Configurator.app/Contents/MacOS/WCH-Configurator"], timeout=240)
+          except subprocess.TimeoutExpired:
+              print("app did not quit within 240 s")
+          EOF
+          ls -la "$RUNNER_TEMP/st"
+          cat "$RUNNER_TEMP/st/selftest.json"
+          python3 - "$RUNNER_TEMP/st/selftest.json" <<'EOF'
+          import json, sys
+          r = json.load(open(sys.argv[1]))
+          bad = [k for k in ("bar", "credit", "repo", "project_roundtrip", "generate_keeps_user_code") if not r.get(k)]
+          if r.get("platform") != "darwin":
+              bad.append("platform")
+          sys.exit("self-test failed: " + ", ".join(bad) if bad else 0)
+          EOF
+
+      - name: Checksums
+        run: |
+          cd desktop/dist
+          shasum -a 256 WCH-Configurator-macos-*.zip | tee SHA256SUMS-macos.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WCH-Configurator-macos
+          path: |
+            desktop/dist/WCH-Configurator-macos-*.zip
+            desktop/dist/SHA256SUMS-macos.txt
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${GITHUB_REF_NAME}" desktop/dist/WCH-Configurator-macos-*.zip --clobber -R "$GITHUB_REPOSITORY"
