@@ -151,6 +151,22 @@ Invalid settings are reported in **Problems**: pin conflicts, a CAN bitrate that
 - **NVIC table** (Project Manager > NVIC): every enabled interrupt, with preemption and sub priority.
 - **Undo / Redo** (Ctrl+Z / Ctrl+Y), and a **Fix** button on pin conflicts that moves a function to a free pin that has it.
 
+#### Examples
+
+The **Examples** button lists ready-to-build sample applications for the selected chip (or for all chips). Loading one sets the pins, peripherals and clock, and puts the application code into the USER CODE sections, so Generate code / the zip gives a project that builds at once. Code you change later is kept on the next Generate.
+
+| Example | Chips |
+|---|---|
+| Blink, button interrupt, UART echo + printf, PWM breathing LED, 1 kHz timer interrupt | every supported chip |
+| ADC read over UART, I2C bus scan, SPI loopback, watchdog, sleep + wake on button | most chips (not where the peripheral is missing) |
+| CAN loopback | CH32V203, V303, V307, L103, F203 |
+| USB CDC echo | CH32V103, V203, V303, V307, X035, L103, CH570, CH572, CH58x, CH592 |
+| BLE peripheral with the UART service, BLE observer | CH572 (peripheral only), CH58x, CH59x |
+| FreeRTOS two tasks | CH32V103, V203, V303, V307, X035, L103 |
+| ADC scan with DMA, WS2812 rainbow | CH32V003, V103, V203, V303, V307, X035, L103 |
+
+All 17 examples were built on every chip they list (425 projects, 0 errors and 0 warnings in `src/`). They were not run on hardware.
+
 #### MCU Selector
 
 The **MCU Selector** button opens a table of every chip and package, like the CubeMX MCU Finder:
@@ -321,7 +337,14 @@ Open `index.html` in a browser (or run the desktop app), pick a chip, configure 
 
 ### License and credits
 
-MIT License, unless a resource says otherwise. See [`LICENSE`](LICENSE).
+**All rights reserved** (source-available, not open source). See [`LICENSE`](LICENSE) for the full text.
+
+- You may use the configurator (web page and desktop app) for free, also for commercial work.
+- The code and projects it generates are yours to use, change and sell without restriction.
+- You may **not** copy, re-upload, mirror or redistribute the configurator or a modified version of it (on GitHub or anywhere else), publish a similar or derived tool made from its code or data, rebrand it or remove the credits, without written permission.
+- Forking on GitHub is allowed only to send pull requests back to this repository.
+- Files from WCH (`Drivers/`, `Templates/`, and the EVT code a generated project downloads) keep their own licenses.
+- For any other use, ask first: amir1387aht@gmail.com.
 
 The WCH Configurator was created by **Amir1387aht (Another)**. Pinouts and register names come from the official WCH datasheets and openwch EVTs.
 
@@ -447,6 +470,22 @@ The WCH Configurator was created by **Amir1387aht (Another)**. Pinouts and regis
   - Flash/RAM واقعی تراشه؛ برنامه‌ای که جا نشود، موقع لینک با پیام روشن خطا می‌دهد.
 - **جدول NVIC** (Project Manager > NVIC): همه‌ی وقفه‌های فعال با اولویت preemption و sub.
 - **Undo / Redo** (Ctrl+Z / Ctrl+Y)، و دکمه‌ی **Fix** کنار تداخل پایه‌ها که تابع را به یک پایه‌ی آزاد با همان تابع منتقل می‌کند.
+
+#### نمونه‌ها (Examples)
+
+دکمه‌ی **Examples** نمونه‌برنامه‌های آماده برای تراشه‌ی انتخاب‌شده (یا همه‌ی تراشه‌ها) را نشان می‌دهد. با انتخاب یک نمونه، پایه‌ها، پریفرال‌ها و کلاک تنظیم می‌شوند و کد برنامه در بخش‌های USER CODE قرار می‌گیرد. پس Generate code یا zip همان لحظه پروژه‌ای می‌دهد که بیلد می‌شود. کدی که بعداً عوض کنید، در Generate بعدی حفظ می‌شود.
+
+| نمونه | تراشه‌ها |
+|---|---|
+| چشمک‌زن، دکمه با وقفه، UART echo و printf، LED تنفسی با PWM، وقفه‌ی تایمر 1 kHz | همه‌ی تراشه‌ها |
+| خواندن ADC روی UART، اسکن I2C، SPI loopback، Watchdog، Sleep و بیدار شدن با دکمه | بیشتر تراشه‌ها (جز جایی که آن پریفرال نیست) |
+| CAN loopback | CH32V203، V303، V307، L103، F203 |
+| USB CDC echo | CH32V103، V203، V303، V307، X035، L103، CH570، CH572، CH58x، CH592 |
+| BLE با سرویس UART، BLE observer | CH572 (فقط peripheral)، CH58x، CH59x |
+| FreeRTOS با دو task | CH32V103، V203، V303، V307، X035، L103 |
+| ADC scan با DMA، رنگین‌کمان WS2812 | CH32V003، V103، V203، V303، V307، X035، L103 |
+
+هر ۱۷ نمونه روی همه‌ی تراشه‌هایی که پشتیبانی می‌کنند بیلد شدند (۴۲۵ پروژه، بدون خطا و هشدار در `src/`). روی سخت‌افزار اجرا نشده‌اند.
 
 #### MCU Selector
 
@@ -647,7 +686,17 @@ git clone https://github.com/amir1387aht/WCH-Resources.git
 
 ### مجوز و اعتبار
 
-این مخزن تحت مجوز MIT است، مگر اینکه منبعی خلاف آن را اعلام کند. فایل [`LICENSE`](LICENSE) را ببینید.
+**تمام حقوق محفوظ است.** کد منبع قابل مشاهده است ولی متن‌باز نیست. متن کامل در فایل [`LICENSE`](LICENSE) است.
+
+- استفاده از ابزار (صفحه‌ی وب و نسخه‌ی دسکتاپ) رایگان است، حتی برای کار تجاری.
+- کد و پروژه‌ای که ابزار تولید می‌کند مال شماست و می‌توانید بدون محدودیت از آن استفاده کنید، تغییرش دهید یا بفروشید.
+- بدون اجازه‌ی کتبی **مجاز نیست**:
+  - کپی، آپلود دوباره، mirror یا توزیع خود ابزار یا نسخه‌ی تغییریافته‌اش، روی GitHub یا هر جای دیگر.
+  - انتشار ابزار مشابه یا مشتق‌شده از کد یا داده‌های آن.
+  - تغییر نام تجاری یا حذف نام سازنده.
+- Fork در GitHub فقط برای فرستادن Pull Request به همین مخزن مجاز است.
+- فایل‌های WCH (`Drivers/`، `Templates/` و کد EVT که پروژه دانلود می‌کند) مجوز خودشان را دارند.
+- برای هر استفاده‌ی دیگر، اول اجازه بگیرید: amir1387aht@gmail.com
 
 سازنده‌ی WCH Configurator: **Amir1387aht (Another)**. پین‌اوت‌ها و نام رجیسترها از دیتاشیت‌های رسمی WCH و EVTهای openwch گرفته شده‌اند.
 
